@@ -27,8 +27,8 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String getNameFromToken(String token) {
-        return parseClaims(token).get("name", String.class);
+    public String getSubject(String token) {
+        return parseClaims(token).getSubject();
     }
 
     private Claims parseClaims(String token) {
@@ -39,3 +39,4 @@ public class JwtUtil {
                 .getBody();
     }
 }
+
