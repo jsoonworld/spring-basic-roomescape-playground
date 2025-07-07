@@ -31,6 +31,10 @@ public class JwtUtil {
         return parseClaims(token).getSubject();
     }
 
+    public String getRoleFromToken(String token) {
+        return parseClaims(token).get("role", String.class);
+    }
+
     private Claims parseClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(secretKey)
