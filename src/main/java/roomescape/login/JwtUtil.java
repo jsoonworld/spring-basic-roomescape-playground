@@ -3,6 +3,7 @@ package roomescape.login;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import roomescape.member.Member;
 
@@ -13,8 +14,7 @@ import java.nio.charset.StandardCharsets;
 public class JwtUtil {
     private final SecretKey secretKey;
 
-    public JwtUtil() {
-        String secretKeyString = "Yn2kjibddFAWtnPJ2AFlL8WXmohJMCvigQggaEypa5E=";
+    public JwtUtil(@Value("${jwt.secret.key}") String secretKeyString) {
         this.secretKey = Keys.hmacShaKeyFor(secretKeyString.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -31,6 +31,8 @@ public class JwtUtil {
         return parseClaims(token).getSubject();
     }
 
+
+
     public String getRoleFromToken(String token) {
         return parseClaims(token).get("role", String.class);
     }
@@ -43,4 +45,3 @@ public class JwtUtil {
                 .getBody();
     }
 }
-

@@ -16,7 +16,11 @@ public class LoginService {
 
     public String login(String email, String password) {
         Member member = memberDao.findByEmailAndPassword(email, password);
-
         return jwtUtil.createToken(member);
+    }
+
+    public LoginMember findLoginMember(Long id) {
+        Member member = memberDao.findById(id);
+        return new LoginMember(member.getId(), member.getName(), member.getEmail(), member.getRole());
     }
 }
