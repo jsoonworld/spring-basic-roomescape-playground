@@ -1,6 +1,5 @@
 package roomescape.member;
 
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -8,6 +7,8 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class MemberDao {
@@ -39,42 +40,34 @@ public class MemberDao {
         }, keyHolder);
 
         Long id = keyHolder.getKey().longValue();
-        return findById(id);
+        return findById(id)
+                .orElseThrow(() -> new IllegalStateException("[ERROR] 저장 후 사용자를 찾을 수 없습니다."));
     }
 
-    public Member findByEmailAndPassword(String email, String password) {
-        try {
-            return jdbcTemplate.queryForObject(
-                    "SELECT id, name, email, password, role FROM member WHERE email = ? AND password = ?",
-                    memberRowMapper,
-                    email, password
-            );
-        } catch (EmptyResultDataAccessException e) {
-            throw new IllegalArgumentException("[ERROR] 이메일 또는 비밀번호가 일치하는 사용자가 없습니다.");
-        }
+    public Optional<Member> findByEmailAndPassword(String email, String password) {
+        List<Member> result = jdbcTemplate.query(
+                "SELECT id, name, email, password, role FROM member WHERE email = ? AND password = ?",
+                memberRowMapper,
+                email, password
+        );
+        return result.stream().findAny();
     }
 
-    public Member findByName(String name) {
-        try {
-            return jdbcTemplate.queryForObject(
-                    "SELECT id, name, email, password, role FROM member WHERE name = ?",
-                    memberRowMapper,
-                    name
-            );
-        } catch (EmptyResultDataAccessException e) {
-            throw new IllegalArgumentException("[ERROR] 해당 이름의 사용자를 찾을 수 없습니다.");
-        }
+    public Optional<Member> findByName(String name) {
+        List<Member> result = jdbcTemplate.query(
+                "SELECT id, name, email, password, role FROM member WHERE name = ?",
+                memberRowMapper,
+                name
+        );
+        return result.stream().findAny();
     }
 
-    public Member findById(Long id) {
-        try {
-            return jdbcTemplate.queryForObject(
-                    "SELECT id, name, email, password, role FROM member WHERE id = ?",
-                    memberRowMapper,
-                    id
-            );
-        } catch (EmptyResultDataAccessException e) {
-            throw new IllegalArgumentException("[ERROR] 해당 ID의 사용자를 찾을 수 없습니다.");
-        }
+    public Optional<Member> findById(Long id) {
+        List<Member> result = jdbcTemplate.query(
+                "SELECT id, name, email, password, role FROM member WHERE id = ?",
+                memberRowMapper,
+                id
+        );
+        return result.stream().findAny();
     }
 }
