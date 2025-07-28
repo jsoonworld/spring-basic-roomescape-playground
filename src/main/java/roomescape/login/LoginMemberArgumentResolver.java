@@ -9,7 +9,6 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolver {
 
@@ -35,16 +34,21 @@ public class LoginMemberArgumentResolver implements HandlerMethodArgumentResolve
             throw new IllegalStateException("[ERROR] 요청 정보를 처리하는 중 문제가 발생했습니다.");
         }
 
-        Cookie[] cookies = request.getCookies();
-        String token = Optional.ofNullable(cookies)
-                .flatMap(c -> Arrays.stream(c)
-                        .filter(cookie -> "token".equals(cookie.getName()))
-                        .map(Cookie::getValue)
-                        .findFirst())
-                .orElseThrow(() -> new IllegalArgumentException("[ERROR] 인증 토큰을 찾을 수 없습니다."));
-
+        String token = extractToken(request.getCookies());
         Long memberId = Long.valueOf(jwtUtil.getSubject(token));
 
         return loginService.findLoginMember(memberId);
+    }
+
+    private String extractToken(Cookie[] cookies) {
+        if (cookies == null) {
+            throw new IllegalArgumentException("[ERROR] 인증 토큰을 찾을 수 없습니다.");
+        }
+
+        return Arrays.stream(cookies)
+                .filter(cookie -> "token".equals(cookie.getName()))
+                .map(Cookie::getValue)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("[ERROR] 인증 토큰을 찾을 수 없습니다."));
     }
 }
