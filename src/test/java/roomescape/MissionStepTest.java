@@ -5,9 +5,12 @@ import io.restassured.http.ContentType;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import roomescape.reservation.ReservationResponse;
+import roomescape.time.Time;
+import roomescape.time.TimeRepository;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class MissionStepTest {
+
+    @Autowired
+    private TimeRepository timeRepository;
 
     @Test
     void 일단계() {
@@ -97,6 +103,16 @@ public class MissionStepTest {
                 .get("/admin")
                 .then().log().all()
                 .statusCode(200);
+    }
+
+    @Test
+    void 사단계() {
+        Time savedTime = timeRepository.save(new Time("10:00"));
+
+        Time persistTime = timeRepository.findById(savedTime.getId()).orElse(null);
+
+        assertThat(persistTime).isNotNull();
+        assertThat(persistTime.getValue()).isEqualTo(savedTime.getValue());
     }
 
     private String createToken(String email, String password) {

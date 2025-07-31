@@ -13,26 +13,27 @@ import java.util.List;
 
 @RestController
 public class ThemeController {
-    private ThemeDao themeDao;
+    private final ThemeService themeService;
 
-    public ThemeController(ThemeDao themeDao) {
-        this.themeDao = themeDao;
+    public ThemeController(ThemeService themeService) {
+        this.themeService = themeService;
     }
 
     @PostMapping("/themes")
     public ResponseEntity<Theme> createTheme(@RequestBody Theme theme) {
-        Theme newTheme = themeDao.save(theme);
-        return ResponseEntity.created(URI.create("/themes/" + newTheme.getId())).body(newTheme);
+        Theme newTheme = themeService.create(theme);
+        return ResponseEntity.created(URI.create("/themes/" + newTheme.getId()))
+                .body(newTheme);
     }
 
     @GetMapping("/themes")
     public ResponseEntity<List<Theme>> list() {
-        return ResponseEntity.ok(themeDao.findAll());
+        return ResponseEntity.ok(themeService.findAll());
     }
 
     @DeleteMapping("/themes/{id}")
     public ResponseEntity<Void> deleteTheme(@PathVariable Long id) {
-        themeDao.deleteById(id);
+        themeService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
