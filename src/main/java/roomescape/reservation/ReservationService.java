@@ -2,31 +2,41 @@ package roomescape.reservation;
 
 import org.springframework.stereotype.Service;
 import roomescape.login.LoginMember;
+import roomescape.theme.Theme;
+import roomescape.theme.ThemeRepository;
+import roomescape.time.Time;
+import roomescape.time.TimeRepository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ReservationService {
-    private final ReservationDao reservationDao;
+    private final ReservationRepository reservationRepository;
+    private final TimeRepository timeRepository;
+    private final ThemeRepository themeRepository;
 
-    public ReservationService(ReservationDao reservationDao) {
-        this.reservationDao = reservationDao;
+    public ReservationService(ReservationRepository reservationRepository,
+                              TimeRepository timeRepository,
+                              ThemeRepository themeRepository) {
+        this.reservationRepository = reservationRepository;
+        this.timeRepository = timeRepository;
+        this.themeRepository = themeRepository;
     }
 
-    public ReservationResponse create(ReservationRequest originalRequest, LoginMember loginMember) {
-        String reservationName = Optional.ofNullable(originalRequest.getName())
+    public ReservationResponse create(ReservationRequest request, LoginMember loginMember) {
+        String reservationName = Optional.ofNullable(request.getName())
                 .filter(name -> !name.isBlank())
                 .orElse(loginMember.name());
 
-        ReservationRequest requestForDao = new ReservationRequest(
-                reservationName,
-                originalRequest.getDate(),
-                originalRequest.getTheme(),
-                originalRequest.getTime()
-        );
+        Time time = timeRepository.findById(request.getTime())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 시간입니다."));
+        Theme theme = themeRepository.findById(request.getTheme())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 테마입니다."));
 
-        Reservation savedReservation = reservationDao.save(requestForDao);
+        Reservation reservation = new Reservation(reservationName, request.getDate(), time, theme);
+
+        Reservation savedReservation = reservationRepository.save(reservation);
 
         return new ReservationResponse(
                 savedReservation.getId(),
@@ -38,12 +48,18 @@ public class ReservationService {
     }
 
     public void deleteById(Long id) {
-        reservationDao.deleteById(id);
+        reservationRepository.deleteById(id);
     }
 
     public List<ReservationResponse> findAll() {
-        return reservationDao.findAll().stream()
-                .map(it -> new ReservationResponse(it.getId(), it.getName(), it.getTheme().getName(), it.getDate(), it.getTime().getValue()))
+        return reservationRepository.findAll().stream()
+                .map(it -> new ReservationResponse(
+                        it.getId(),
+                        it.getName(),
+                        it.getTheme().getName(),
+                        it.getDate(),
+                        it.getTime().getValue()
+                ))
                 .toList();
     }
 }
