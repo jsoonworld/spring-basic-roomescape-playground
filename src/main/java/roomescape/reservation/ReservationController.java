@@ -26,6 +26,12 @@ public class ReservationController {
         return reservationService.findAll();
     }
 
+    @GetMapping("/reservations-mine")
+    public ResponseEntity<List<MyReservationResponse>> findMyReservations(LoginMember loginMember) {
+        List<MyReservationResponse> reservations = reservationService.findReservationsByMemberId(loginMember.id());
+        return ResponseEntity.ok(reservations);
+    }
+
     @PostMapping("/reservations")
     public ResponseEntity<ReservationResponse> create(
             @RequestBody ReservationRequest reservationRequest, LoginMember loginMember) {
@@ -41,4 +47,3 @@ public class ReservationController {
         return ResponseEntity.noContent().build();
     }
 }
-
