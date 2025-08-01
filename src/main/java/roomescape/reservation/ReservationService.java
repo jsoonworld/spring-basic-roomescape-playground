@@ -8,9 +8,11 @@ import roomescape.theme.Theme;
 import roomescape.theme.ThemeRepository;
 import roomescape.time.Time;
 import roomescape.time.TimeRepository;
+import roomescape.waiting.WaitingRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 public class ReservationService {
@@ -18,16 +20,16 @@ public class ReservationService {
     private final TimeRepository timeRepository;
     private final ThemeRepository themeRepository;
     private final MemberRepository memberRepository;
+    private final WaitingRepository waitingRepository;
 
-    public ReservationService(ReservationRepository reservationRepository,
-                              TimeRepository timeRepository,
-                              ThemeRepository themeRepository,
-                              MemberRepository memberRepository) {
+    public ReservationService(ReservationRepository reservationRepository, TimeRepository timeRepository, ThemeRepository themeRepository, MemberRepository memberRepository, WaitingRepository waitingRepository) {
         this.reservationRepository = reservationRepository;
         this.timeRepository = timeRepository;
         this.themeRepository = themeRepository;
         this.memberRepository = memberRepository;
+        this.waitingRepository = waitingRepository;
     }
+
 
     public ReservationResponse create(ReservationRequest request, LoginMember loginMember) {
         String reservationName = Optional.ofNullable(request.getName())
@@ -56,9 +58,16 @@ public class ReservationService {
     }
 
     public List<MyReservationResponse> findReservationsByMemberId(Long memberId) {
-        return reservationRepository.findByMemberIdWithDetails(memberId).stream()
-                .map(MyReservationResponse::from)
-                .toList();
+        Stream<MyReservationResponse> reservations = reservationRepository.findByMemberIdWithDetails(memberId).stream()
+                .map(MyReservationResponse::from);
+
+        Stream<MyReservationResponse> waitings = waitingRepository.findWaitingsWithRankByMemberId(memberId).stream()
+                .map(waitingWithRank -> MyReservationResponse.from(
+                        waitingWithRank.getWaiting(),
+                        waitingWithRank.getRank()
+                ));
+
+        return Stream.concat(reservations, waitings).toList();
     }
 
     public void deleteById(Long id) {

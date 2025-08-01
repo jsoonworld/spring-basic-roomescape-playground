@@ -4,6 +4,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import roomescape.member.Member;
+import roomescape.theme.Theme;
+import roomescape.time.Time;
 
 import java.util.List;
 
@@ -13,4 +16,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT r FROM Reservation r JOIN FETCH r.theme JOIN FETCH r.time WHERE r.member.id = :memberId")
     List<Reservation> findByMemberIdWithDetails(@Param("memberId") Long memberId);
+
+    boolean existsByMemberAndDateAndTimeAndTheme(Member member, String date, Time time, Theme theme);
 }
