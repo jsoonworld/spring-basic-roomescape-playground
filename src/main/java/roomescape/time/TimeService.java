@@ -1,12 +1,15 @@
 package roomescape.time;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import roomescape.reservation.Reservation;
 import roomescape.reservation.ReservationRepository;
+import roomescape.reservation.ReservationStatus;
 
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class TimeService {
 
     private final TimeRepository timeRepository;
@@ -18,16 +21,20 @@ public class TimeService {
     }
 
     public List<AvailableTime> getAvailableTime(String date, Long themeId) {
-        List<Reservation> reservations = reservationRepository.findByDateAndThemeId(date, themeId);
-        List<Time> times = timeRepository.findAll();
+        List<Reservation> confirmedReservations = reservationRepository.findByDateAndThemeIdAndStatus(
+                date,
+                themeId,
+                ReservationStatus.CONFIRMED
+        );
+        List<Time> allTimes = timeRepository.findAll();
 
-        return times.stream()
-                .map(time -> new AvailableTime(
-                        time.getId(),
-                        time.getValue(),
-                        reservations.stream()
-                                .anyMatch(reservation -> reservation.getTime().getId().equals(time.getId()))
-                ))
+        return allTimes.stream()
+                .map(time -> {
+
+                    boolean isBooked = confirmedReservations.stream()
+                            .anyMatch(reservation -> reservation.getTime().getId().equals(time.getId()));
+                    return new AvailableTime(time.getId(), time.getValue(), isBooked);
+                })
                 .toList();
     }
 
@@ -35,10 +42,12 @@ public class TimeService {
         return timeRepository.findAll();
     }
 
+    @Transactional
     public Time save(Time time) {
         return timeRepository.save(time);
     }
 
+    @Transactional
     public void deleteById(Long id) {
         timeRepository.deleteById(id);
     }

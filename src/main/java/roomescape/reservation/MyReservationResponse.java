@@ -1,7 +1,5 @@
 package roomescape.reservation;
 
-import roomescape.waiting.Waiting;
-
 public record MyReservationResponse(
         Long reservationId,
         String theme,
@@ -9,23 +7,18 @@ public record MyReservationResponse(
         String time,
         String status
 ) {
-    public static MyReservationResponse from(Reservation reservation) {
+    public static MyReservationResponse from(Reservation reservation, Long rank) {
+        String statusText = "예약";
+        if (reservation.getStatus() == ReservationStatus.WAITING) {
+            statusText = rank + "번째 예약대기";
+        }
+
         return new MyReservationResponse(
                 reservation.getId(),
                 reservation.getTheme().getName(),
                 reservation.getDate(),
                 reservation.getTime().getValue(),
-                "예약"
-        );
-    }
-
-    public static MyReservationResponse from(Waiting waiting, Long rank) {
-        return new MyReservationResponse(
-                waiting.getId(),
-                waiting.getTheme().getName(),
-                waiting.getDate(),
-                waiting.getTime().getValue(),
-                rank + "번째 예약대기"
+                statusText
         );
     }
 }

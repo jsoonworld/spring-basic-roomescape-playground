@@ -22,13 +22,14 @@ public class ReservationController {
     }
 
     @GetMapping("/reservations")
-    public List<ReservationResponse> list() {
-        return reservationService.findAll();
+    public ResponseEntity<List<ReservationResponse>> findAllReservations() {
+        List<ReservationResponse> responses = reservationService.findAll();
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/reservations-mine")
     public ResponseEntity<List<MyReservationResponse>> findMyReservations(LoginMember loginMember) {
-        List<MyReservationResponse> reservations = reservationService.findReservationsByMemberId(loginMember.id());
+        List<MyReservationResponse> reservations = reservationService.findMyReservations(loginMember);
         return ResponseEntity.ok(reservations);
     }
 
@@ -42,8 +43,8 @@ public class ReservationController {
     }
 
     @DeleteMapping("/reservations/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        reservationService.deleteById(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id, LoginMember loginMember) {
+        reservationService.deleteById(id, loginMember);
         return ResponseEntity.noContent().build();
     }
 }

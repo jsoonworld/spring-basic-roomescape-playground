@@ -15,23 +15,19 @@ public class ReservationResponse {
         this.time = time;
     }
 
-    public Long getId() {
-        return id;
+    public static ReservationResponse from(Reservation reservation) {
+        return new ReservationResponse(
+                reservation.getId(),
+                reservation.getMember().getName(),
+                reservation.getTheme().getName(),
+                reservation.getDate(),
+                reservation.getTime().getValue()
+        );
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getTheme() {
-        return theme;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
-    public String getTime() {
-        return time;
-    }
+    public Long getId() { return id; }
+    public String getName() { return name; }
+    public String getTheme() { return theme; }
+    public String getDate() { return date; }
+    public String getTime() { return time; }
 }
