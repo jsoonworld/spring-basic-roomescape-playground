@@ -2,6 +2,7 @@ package roomescape.theme;
 
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ThemeService {
@@ -11,12 +12,17 @@ public class ThemeService {
         this.themeRepository = themeRepository;
     }
 
-    public Theme create(Theme theme) {
-        return themeRepository.save(theme);
+    public ThemeResponse create(ThemeRequest request) {
+        Theme newTheme = new Theme(request.name(), request.description());
+        Theme savedTheme = themeRepository.save(newTheme);
+        return ThemeResponse.from(savedTheme);
     }
 
-    public List<Theme> findAll() {
-        return themeRepository.findAll();
+    public List<ThemeResponse> findAll() {
+        return themeRepository.findAll()
+                .stream()
+                .map(ThemeResponse::from)
+                .collect(Collectors.toList());
     }
 
     public void delete(Long id) {

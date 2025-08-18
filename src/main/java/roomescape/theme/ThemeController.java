@@ -20,15 +20,16 @@ public class ThemeController {
     }
 
     @PostMapping("/themes")
-    public ResponseEntity<Theme> createTheme(@RequestBody Theme theme) {
-        Theme newTheme = themeService.create(theme);
-        return ResponseEntity.created(URI.create("/themes/" + newTheme.getId()))
+    public ResponseEntity<ThemeResponse> createTheme(@RequestBody ThemeRequest request) {
+        ThemeResponse newTheme = themeService.create(request);
+        return ResponseEntity.created(URI.create("/themes/" + newTheme.id()))
                 .body(newTheme);
     }
 
     @GetMapping("/themes")
-    public ResponseEntity<List<Theme>> list() {
-        return ResponseEntity.ok(themeService.findAll());
+    public ResponseEntity<List<ThemeResponse>> list() {
+        List<ThemeResponse> themes = themeService.findAll();
+        return ResponseEntity.ok(themes);
     }
 
     @DeleteMapping("/themes/{id}")
