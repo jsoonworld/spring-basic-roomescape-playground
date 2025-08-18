@@ -33,17 +33,23 @@ public class ReservationService {
 
     @Transactional
     public ReservationResponse create(ReservationRequest request, LoginMember loginMember) {
-        Time time = findTimeById(request.getTime());
-        Theme theme = findThemeById(request.getTheme());
-
-        if (reservationRepository.existsByMemberIdAndDateAndTimeAndTheme(loginMember.id(), request.getDate(), time, theme)) {
+        if (reservationRepository.existsByMemberIdAndDateAndTimeIdAndThemeId(
+                loginMember.id(), request.getDate(), request.getTime(), request.getTheme())) {
             throw new IllegalArgumentException("[ERROR] 이미 예약 또는 예약 대기 상태입니다.");
         }
 
-        long confirmedCount = reservationRepository.countByDateAndTimeAndThemeAndStatus(request.getDate(), time, theme, ReservationStatus.CONFIRMED);
-        ReservationStatus status = (confirmedCount < MAX_CONFIRMED_RESERVATIONS) ? ReservationStatus.CONFIRMED : ReservationStatus.WAITING;
+        long confirmedCount = reservationRepository.countByDateAndTimeIdAndThemeIdAndStatus(
+                request.getDate(), request.getTime(), request.getTheme(), ReservationStatus.CONFIRMED);
 
+        ReservationStatus status = ReservationStatus.WAITING;
+        if (confirmedCount < MAX_CONFIRMED_RESERVATIONS) {
+            status = ReservationStatus.CONFIRMED;
+        }
+
+        Time time = findTimeById(request.getTime());
+        Theme theme = findThemeById(request.getTheme());
         Member member = findMemberById(loginMember.id());
+
         Reservation reservation = new Reservation(member, request.getDate(), time, theme, status);
         Reservation savedReservation = reservationRepository.save(reservation);
 
